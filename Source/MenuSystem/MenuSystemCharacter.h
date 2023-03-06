@@ -17,7 +17,8 @@ protected:
 	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
 	/** 委托, 当查找到session指针; Delegate fired when the search for an online session has completed */
 	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
-
+	/** 委托, 当加入会话完成 */
+	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
 	//////////////////////////////////////////////////////////////////////////
 public:
 	/** Camera boom positioning the camera behind the character */
@@ -85,6 +86,9 @@ protected:
 
 	// 回调, 用于绑定委托 FindSessionsCompleteDelegate
 	void OnFindSessionsComplete(bool bWasSuccessful);
+	
+	// 回调, 用于绑定委托 JoinSessionCompleteDelegate
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 protected:
 	// 在线会话接口; 本质是1根OnlineSession智能指针;
