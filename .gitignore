@@ -8,3 +8,5 @@ Content/__ExternalObjects__/ThirdPerson/Maps/ThirdPersonMap/
 Content/Characters/
 Content/LevelPrototyping/
 Content/ThirdPerson/
+Build/Windows/
+Build/WinPackage/

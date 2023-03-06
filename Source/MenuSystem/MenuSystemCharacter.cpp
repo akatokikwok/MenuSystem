@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "MenuSystemCharacter.h"
 #include "Camera/CameraComponent.h"
@@ -7,11 +7,17 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "OnlineSubsystem.h"
+#include "OnlineSessionSettings.h"
+
 
 //////////////////////////////////////////////////////////////////////////
 // AMenuSystemCharacter
 
 AMenuSystemCharacter::AMenuSystemCharacter()
+	/** 给2个委托注册回调事件. */
+	: CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete))
+	, FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete))
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -49,6 +55,18 @@ AMenuSystemCharacter::AMenuSystemCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+
+	IOnlineSubsystem* GRBOnlineSubsystemPtr = IOnlineSubsystem::Get();
+	if (GRBOnlineSubsystemPtr != nullptr) {
+		// 使用在线子系统获取一个session 
+		OnlineSessionInterface = GRBOnlineSubsystemPtr->GetSessionInterface();
+		// 顺带打印一下在线子系统的名字.
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue,
+				FString::Printf(TEXT("Found OnlineSubsystemPtr's Name is %s"), *GRBOnlineSubsystemPtr->GetSubsystemName().ToString()));
+		}
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -101,8 +119,7 @@ void AMenuSystemCharacter::LookUpAtRate(float Rate)
 
 void AMenuSystemCharacter::MoveForward(float Value)
 {
-	if ((Controller != nullptr) && (Value != 0.0f))
-	{
+	if ((Controller != nullptr) && (Value != 0.0f)) {
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -115,15 +132,80 @@ void AMenuSystemCharacter::MoveForward(float Value)
 
 void AMenuSystemCharacter::MoveRight(float Value)
 {
-	if ( (Controller != nullptr) && (Value != 0.0f) )
-	{
+	if ((Controller != nullptr) && (Value != 0.0f)) {
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
+
 		// get right vector 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+// 创建会话
+void AMenuSystemCharacter::CreateGameSession()
+{
+	// 检查会话接口的这一根智能指针是否合法
+	if (!OnlineSessionInterface.IsValid()) {
+		return;
+	}
+
+	// 从会话接口里查找session,并清除掉
+	auto ExistingSession = OnlineSessionInterface->GetNamedSession(NAME_GameSession);
+	if (ExistingSession != nullptr) {
+		OnlineSessionInterface->DestroySession(NAME_GameSession);
+	}
+
+	// 会话接口需要填充委托列表; 把委托:"已创建会话"注册进去
+	OnlineSessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
+
+	// 构建填充设置项
+	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
+	SessionSettings->bIsLANMatch = false;
+	SessionSettings->NumPublicConnections = 4;// 公共链接,决定了有多少个玩家
+	SessionSettings->bAllowJoinInProgress = true;// 会话运行时,是否允许他人进入
+	SessionSettings->bAllowJoinViaPresence = true;// 搜索他国玩家本地区的会话链接
+	SessionSettings->bShouldAdvertise = true;// 是否允许Steamadvertise此会话
+	SessionSettings->bUsesPresence = true;
+	SessionSettings->bUseLobbiesIfAvailable = true;// 这一步最关键,一定要开启
+
+	//SessionSettings->Set(TEXT("MatchType"), FName("FreeForAll"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+
+	/* 创建出会话. */
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(),/*本地玩家才允许获得唯一ID*/
+		NAME_GameSession, *SessionSettings);
+}
+
+// 加入会话
+void AMenuSystemCharacter::JoinGameSession()
+{
+
+}
+
+// 回调, 用于绑定委托 CreateSessionCompleteDelegate
+void AMenuSystemCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+{
+	if (bWasSuccessful) {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue,
+				FString::Printf(TEXT("Created session: %s"), *SessionName.ToString())
+			);
+		}
+	}
+	else {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red,
+				FString(TEXT("Failed to create session!"))
+			);
+		}
+	}
+}
+
+// 回调, 用于绑定委托 FindSessionsCompleteDelegate
+void AMenuSystemCharacter::OnFindSessionsComplete(bool bWasSuccessful)
+{
+
 }
