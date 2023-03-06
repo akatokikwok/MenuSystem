@@ -15,7 +15,7 @@
 // AMenuSystemCharacter
 
 AMenuSystemCharacter::AMenuSystemCharacter()
-	/** 给2个委托注册回调事件. */
+/** 给2个委托注册回调事件. */
 	: CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete))
 	, FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete))
 {
@@ -182,7 +182,21 @@ void AMenuSystemCharacter::CreateGameSession()
 // 加入会话
 void AMenuSystemCharacter::JoinGameSession()
 {
+	// Find game sessions
+	if (!OnlineSessionInterface.IsValid()) {
+		return;
+	}
+	// 会话接口内注册进1个委托:当查找到会话
+	OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
 
+	// new 一个会话查找器
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	SessionSearch->MaxSearchResults = 10000;
+	SessionSearch->bIsLanQuery = false;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
 }
 
 // 回调, 用于绑定委托 CreateSessionCompleteDelegate
@@ -207,5 +221,14 @@ void AMenuSystemCharacter::OnCreateSessionComplete(FName SessionName, bool bWasS
 // 回调, 用于绑定委托 FindSessionsCompleteDelegate
 void AMenuSystemCharacter::OnFindSessionsComplete(bool bWasSuccessful)
 {
-
+	// 扫描查找器内部的所有查找结果
+	for (auto& Result : SessionSearch->SearchResults) {
+		FString Id = Result.GetSessionIdStr();
+		FString User = Result.Session.OwningUserName;
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan,
+				FString::Printf(TEXT("Id: %s, User: %s"), *Id, *User)
+			);
+		}
+	}
 }

@@ -90,6 +90,6 @@ protected:
 	// 在线会话接口; 本质是1根OnlineSession智能指针;
 	IOnlineSessionPtr OnlineSessionInterface;
 
-	// 在线会话查找结果, 为1个结构体
+	// 有1个会话查找器.
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 };
