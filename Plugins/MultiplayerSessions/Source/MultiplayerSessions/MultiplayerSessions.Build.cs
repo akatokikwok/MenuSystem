@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -28,6 +28,9 @@ public class MultiplayerSessions : ModuleRules
 				"Core",
                 "OnlineSubsystem",
                 "OnlineSubsystemSteam",
+                "UMG",
+                "Slate",
+                "SlateCore",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

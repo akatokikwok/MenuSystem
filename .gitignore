@@ -5,8 +5,8 @@ Saved/
 Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/0/
 Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/
 Content/__ExternalObjects__/ThirdPerson/Maps/ThirdPersonMap/
-Content/Characters/
-Content/LevelPrototyping/
-Content/ThirdPerson/
 Build/Windows/
 Build/WinPackage/
+Content/Characters/Mannequin_UE4/
+Content/Characters/Mannequins/
+Content/LevelPrototyping/
