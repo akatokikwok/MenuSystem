@@ -15,4 +15,25 @@ public:
 	// 接口,负责处理绘制和设置输入模式
 	UFUNCTION(BlueprintCallable)
 		void MenuSetup();
+
+protected:
+	// 覆写UserWidget:::Initialize
+	virtual bool Initialize() override;
+
+private:
+	UFUNCTION()
+		void HostButtonClicked();
+
+	UFUNCTION()
+		void JoinButtonClicked();
+
+private:
+	UPROPERTY(meta = (BindWidget))
+		class UButton* HostButton;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* JoinButton;
+
+	// 多人会话子系统 指针
+	class UMultiplayerSessionsSubsystem* MultiplayerSessionsSubsystem;
 };
