@@ -52,4 +52,7 @@ protected:
 private:
 	// 在线会话接口; 本质是1根OnlineSession智能指针;
 	IOnlineSessionPtr SessionInterface;
+
+	// 会话设置项
+	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
 };

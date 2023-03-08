@@ -3,8 +3,12 @@
 #include "MultiplayerSessionsSubsystem.h"
 
 
-void UMenu::MenuSetup()
+// 接口, 启用菜单功能, 负责处理绘制和设置输入模式
+void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch)
 {
+	NumPublicConnections = NumberOfPublicConnections;
+	MatchType = TypeOfMatch;
+
 	AddToViewport();
 	SetVisibility(ESlateVisibility::Visible);
 	bIsFocusable = true;
@@ -45,6 +49,13 @@ bool UMenu::Initialize()
 	return true;
 }
 
+// 覆写OnLevelRemovedFromWorld; 当传送到别的关卡的时机会启用部分逻辑
+void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
+{
+	MenuTearDown();// 禁用菜单UI功能
+	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
+}
+
 void UMenu::HostButtonClicked()
 {
 	if (GEngine) {
@@ -53,9 +64,13 @@ void UMenu::HostButtonClicked()
 		);
 	}
 
-	// 使用会话子系统创建会话, 制定链接人数和匹配类型键值对
+	// 使用会话子系统创建会话, 制定链接人数和匹配类型键值对; 顺便传送到lobby关卡地图
 	if (MultiplayerSessionsSubsystem) {
-		MultiplayerSessionsSubsystem->CreateSession(4, FString("FreeForAll"));
+		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
+		UWorld* World = GetWorld();
+		if (World) {
+			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+		}
 	}
 }
 
@@ -65,5 +80,20 @@ void UMenu::JoinButtonClicked()
 		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow,
 			FString(TEXT("Join Button Clicked"))
 		);
+	}
+}
+
+// 禁用菜单UI功能
+void UMenu::MenuTearDown()
+{
+	RemoveFromParent();
+	UWorld* World = GetWorld();
+	if (World) {
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		if (PlayerController) {
+			FInputModeGameOnly InputModeData;
+			PlayerController->SetInputMode(InputModeData);
+			PlayerController->SetShowMouseCursor(false);
+		}
 	}
 }
