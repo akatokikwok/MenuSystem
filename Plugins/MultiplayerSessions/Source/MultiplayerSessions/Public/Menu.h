@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Menu.generated.h"
 
 /**
@@ -22,9 +23,21 @@ protected:
 	// 覆写OnLevelRemovedFromWorld; 当传送到别的关卡的时机会启用部分逻辑
 	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 
-	// 回调: 用于绑定会话子系统上的UI委托
+
+#pragma region 一组回调: 用于绑定会话子系统上的UI委托; 也表示会话的各类行为的操作结果
 	UFUNCTION()
 		void OnCreateSession(bool bWasSuccessful);
+	//
+	void OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful);
+	//
+	void OnJoinSession(EOnJoinSessionCompleteResult::Type Result);
+	//
+	UFUNCTION()
+		void OnDestroySession(bool bWasSuccessful);
+	//
+	UFUNCTION()
+		void OnStartSession(bool bWasSuccessful);
+#pragma endregion 一组回调: 用于绑定会话子系统上的UI委托; 也表示会话的各类行为的操作结果
 
 private:
 	UFUNCTION()
@@ -48,7 +61,7 @@ private:
 
 	// 链接玩家数
 	int32 NumPublicConnections{ 4 };
-	
+
 	// 匹配类型键值对
 	FString MatchType{ TEXT("FreeForAll") };
 };

@@ -12,6 +12,14 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnCreateSessionComplete, bool, bWasSuccessful);
 
 /**
+ * 一组委托,类似于上一行, 都是负责表示会话子系统内关于会话相关操作的
+ */
+DECLARE_MULTICAST_DELEGATE_TwoParams(FMultiplayerOnFindSessionsComplete, const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_OneParam(FMultiplayerOnJoinSessionComplete, EOnJoinSessionCompleteResult::Type Result);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnDestroySessionComplete, bool, bWasSuccessful);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnStartSessionComplete, bool, bWasSuccessful);
+
+/**
  * 多人会话管理子系统
  */
 UCLASS()
@@ -36,6 +44,13 @@ private:
 public:
 	/** 自定义委托, 表示创建会话行为是否成功; 负责串联UI和子系统; 这样仅需在会话子系统内触发Menuclass的一些行为即可 */
 	FMultiplayerOnCreateSessionComplete MultiplayerOnCreateSessionComplete;
+	/**
+	 * 一组委托,类似于上一行, 都是负责表示会话子系统内关于会话相关操作的
+	 */
+	FMultiplayerOnFindSessionsComplete MultiplayerOnFindSessionsComplete;
+	FMultiplayerOnJoinSessionComplete MultiplayerOnJoinSessionComplete;
+	FMultiplayerOnDestroySessionComplete MultiplayerOnDestroySessionComplete;
+	FMultiplayerOnStartSessionComplete MultiplayerOnStartSessionComplete;
 
 public:
 	UMultiplayerSessionsSubsystem();
