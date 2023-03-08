@@ -29,6 +29,11 @@ void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch)
 		if (GameInstance) {
 			MultiplayerSessionsSubsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
 		}
+
+		// 菜单构建同时, 绑定与注册会话子系统的UI委托
+		if (MultiplayerSessionsSubsystem) {
+			MultiplayerSessionsSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
+		}
 	}
 }
 
@@ -56,21 +61,30 @@ void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 	Super::OnLevelRemovedFromWorld(InLevel, InWorld);
 }
 
-void UMenu::HostButtonClicked()
+// 回调: 用于绑定会话子系统上的UI委托
+void UMenu::OnCreateSession(bool bWasSuccessful)
 {
-	if (GEngine) {
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow,
-			FString(TEXT("Host Button Clicked"))
-		);
-	}
-
-	// 使用会话子系统创建会话, 制定链接人数和匹配类型键值对; 顺便传送到lobby关卡地图
-	if (MultiplayerSessionsSubsystem) {
-		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
+	/* 依据创建会话结果来进行是否 传送人物到lobby地图. */
+	if (bWasSuccessful) {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Session created successfully!")));
+		}
 		UWorld* World = GetWorld();
 		if (World) {
 			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
 		}
+	}
+	else {
+		if (GEngine) {
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Failed to create session!")));
+		}
+	}
+}
+
+void UMenu::HostButtonClicked()
+{
+	if (MultiplayerSessionsSubsystem) {
+		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
 	}
 }
 

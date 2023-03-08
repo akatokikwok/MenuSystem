@@ -47,10 +47,15 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	/* 这一步设定匹配类型的键值对, 以及公告类型.*/
 	LastSessionSettings->Set(FName("MatchType"), MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
-	/* 创建出会话之后 针对性地,清除委托列表里的"创建会话委托". */
+	/* 各平台若创建会话失败 针对性地,清除委托列表里的"创建会话委托". */
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings)) {
+		
+		// 会话接口使用完之后, 清除"创建会话委托"
 		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
+
+		// 触发 那个自定义的UI菜单委托, false, 表示未能创建UI
+		MultiplayerOnCreateSessionComplete.Broadcast(false);
 	}
 }
 
@@ -76,7 +81,11 @@ void UMultiplayerSessionsSubsystem::StartSession()
 
 void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
-
+	if (SessionInterface) {
+		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
+	}
+	// 按会话创建结果来触发 UI事件
+	MultiplayerOnCreateSessionComplete.Broadcast(bWasSuccessful);
 }
 
 void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)

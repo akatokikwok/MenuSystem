@@ -7,6 +7,10 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "MultiplayerSessionsSubsystem.generated.h"
 
+
+/** 自定义委托, 表示创建会话行为是否成功; 负责串联UI和子系统; 这样仅需在会话子系统内触发Menuclass的一些行为即可 */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnCreateSessionComplete, bool, bWasSuccessful);
+
 /**
  * 多人会话管理子系统
  */
@@ -28,6 +32,10 @@ private:
 	FDelegateHandle DestroySessionCompleteDelegateHandle;
 	FOnStartSessionCompleteDelegate StartSessionCompleteDelegate;
 	FDelegateHandle StartSessionCompleteDelegateHandle;
+
+public:
+	/** 自定义委托, 表示创建会话行为是否成功; 负责串联UI和子系统; 这样仅需在会话子系统内触发Menuclass的一些行为即可 */
+	FMultiplayerOnCreateSessionComplete MultiplayerOnCreateSessionComplete;
 
 public:
 	UMultiplayerSessionsSubsystem();

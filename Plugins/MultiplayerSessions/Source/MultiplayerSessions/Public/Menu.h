@@ -22,6 +22,10 @@ protected:
 	// 覆写OnLevelRemovedFromWorld; 当传送到别的关卡的时机会启用部分逻辑
 	virtual void OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld) override;
 
+	// 回调: 用于绑定会话子系统上的UI委托
+	UFUNCTION()
+		void OnCreateSession(bool bWasSuccessful);
+
 private:
 	UFUNCTION()
 		void HostButtonClicked();
