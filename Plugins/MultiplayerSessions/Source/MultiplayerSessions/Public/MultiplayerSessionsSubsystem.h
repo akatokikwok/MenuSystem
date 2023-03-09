@@ -78,4 +78,7 @@ private:
 
 	// 会话设置项
 	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
+
+	// 会话搜索器; 是1根智能指针
+	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
 };
