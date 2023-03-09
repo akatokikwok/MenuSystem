@@ -77,7 +77,7 @@ void UMenu::HostButtonClicked()
 void UMenu::JoinButtonClicked()
 {
 	if (MultiplayerSessionsSubsystem) {
-		MultiplayerSessionsSubsystem->FindSessions(10000);
+		MultiplayerSessionsSubsystem->FindSessions(10000);// 查找搜索结果, 上限1000;
 	}
 }
 

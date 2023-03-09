@@ -61,40 +61,44 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	}
 }
 
+
+#pragma region 一些供Menu菜单调用的处理会话操作的主动接口
 void UMultiplayerSessionsSubsystem::FindSessions(int32 MaxSearchResults)
 {
 	if (!SessionInterface.IsValid()) {
 		return;
 	}
-
+	/* 向会话接口内的委托列表-- 注册"查找会话行为"这个委托; */
 	FindSessionsCompleteDelegateHandle = SessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
-
+	/* 构建会话查找器 */
 	LastSessionSearch = MakeShareable(new FOnlineSessionSearch());
 	LastSessionSearch->MaxSearchResults = MaxSearchResults;
 	LastSessionSearch->bIsLanQuery = IOnlineSubsystem::Get()->GetSubsystemName() == "NULL" ? true : false;
 	LastSessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
 
+	// 查找会话失败 则会让委托列表清除委托, 并广播这个操作 空查询结果
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!SessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), LastSessionSearch.ToSharedRef())) {
 		SessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
-
 		MultiplayerOnFindSessionsComplete.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
 	}
 }
 
 void UMultiplayerSessionsSubsystem::JoinSession(const FOnlineSessionSearchResult& SessionResult)
 {
+	// 没有会话接口指针, 则加入会话行为广播未知错误.
 	if (!SessionInterface.IsValid()) {
 		MultiplayerOnJoinSessionComplete.Broadcast(EOnJoinSessionCompleteResult::UnknownError);
 		return;
 	}
 
+	/* 向会话接口内的委托列表-- 注册"加入会话行为"这个委托; */
 	JoinSessionCompleteDelegateHandle = SessionInterface->AddOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegate);
 
+	// 加入会话失败 则会让委托列表清除委托, 并广播这个操作未知错误
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!SessionInterface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, SessionResult)) {
 		SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
-
 		MultiplayerOnJoinSessionComplete.Broadcast(EOnJoinSessionCompleteResult::UnknownError);
 	}
 }
@@ -108,7 +112,10 @@ void UMultiplayerSessionsSubsystem::StartSession()
 {
 
 }
+#pragma endregion 一些供Menu菜单调用的处理会话操作的主动接口
 
+
+#pragma region 一些内部回调, 不供外部使用; 仅用于绑定会话接口
 void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
 	if (SessionInterface) {
@@ -120,15 +127,16 @@ void UMultiplayerSessionsSubsystem::OnCreateSessionComplete(FName SessionName, b
 
 void UMultiplayerSessionsSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 {
+	// 默认让会话接口清除 委托: 查找操作.
 	if (SessionInterface) {
 		SessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegateHandle);
 	}
-
+	// 清除上次会话搜索结果
 	if (LastSessionSearch->SearchResults.Num() <= 0) {
 		MultiplayerOnFindSessionsComplete.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
 		return;
 	}
-
+	// 广播查找行为的操作结果与搜索数量
 	MultiplayerOnFindSessionsComplete.Broadcast(LastSessionSearch->SearchResults, bWasSuccessful);
 }
 
@@ -150,3 +158,4 @@ void UMultiplayerSessionsSubsystem::OnStartSessionComplete(FName SessionName, bo
 {
 
 }
+#pragma endregion 一些内部回调, 不供外部使用; 仅用于绑定会话接口
