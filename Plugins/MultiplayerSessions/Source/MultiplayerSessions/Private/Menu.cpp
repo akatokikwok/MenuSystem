@@ -70,7 +70,8 @@ void UMenu::OnLevelRemovedFromWorld(ULevel* InLevel, UWorld* InWorld)
 
 void UMenu::HostButtonClicked()
 {
-	HostButton->SetIsEnabled(false);
+	HostButton->SetIsEnabled(false);// 点完之后就不能二次点击
+
 	if (MultiplayerSessionsSubsystem) {
 		MultiplayerSessionsSubsystem->CreateSession(NumPublicConnections, MatchType);
 	}
@@ -78,7 +79,8 @@ void UMenu::HostButtonClicked()
 
 void UMenu::JoinButtonClicked()
 {
-	JoinButton->SetIsEnabled(false);
+	JoinButton->SetIsEnabled(false);// 点完之后就不能二次点击
+
 	if (MultiplayerSessionsSubsystem) {
 		MultiplayerSessionsSubsystem->FindSessions(10000);// 查找搜索结果, 上限1000;
 	}
@@ -118,7 +120,7 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 		if (GEngine) {
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Failed to create session!")));
 		}
-		//
+		// 再次启用button
 		HostButton->SetIsEnabled(true);
 	}
 }
@@ -137,7 +139,7 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResu
 			return;
 		}
 	}
-	//
+	// 仅当失败或者没有搜索结果时, 才允许再次启用button
 	if (!bWasSuccessful || SessionResults.Num() == 0) {
 		JoinButton->SetIsEnabled(true);
 	}
@@ -157,6 +159,11 @@ void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 			if (PlayerController) {
 				PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
 			}
+		}
+
+		// 若各种原因加入失败, 则允许开启button, 再点击一次.
+		if (Result != EOnJoinSessionCompleteResult::Success) {
+			JoinButton->SetIsEnabled(true);
 		}
 	}
 }
