@@ -122,10 +122,10 @@ void UMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResu
 	if (MultiplayerSessionsSubsystem == nullptr) {
 		return;
 	}
-
-	for (auto Result : SessionResults) {
+	// 对于每一个搜索结果, 只要匹配特定匹配字符,就真正意义上的加入会话
+	for (auto& Result : SessionResults) {
 		FString SettingsValue;
-		Result.Session.SessionSettings.Get(FName("MatchType"), SettingsValue);
+		Result.Session.SessionSettings.Get(FName("MatchType"), SettingsValue);// 取出键值对
 		if (SettingsValue == MatchType) {
 			MultiplayerSessionsSubsystem->JoinSession(Result);
 			return;
@@ -139,9 +139,10 @@ void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 	if (Subsystem) {
 		IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
 		if (SessionInterface.IsValid()) {
+			// 获得平台链接进来的特定信息, 解析这个链入信息为1个字符串.
 			FString Address;
 			SessionInterface->GetResolvedConnectString(NAME_GameSession, Address);
-
+			// 使用链接信息字符串, 让链入方玩家跳转地图.
 			APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
 			if (PlayerController) {
 				PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
