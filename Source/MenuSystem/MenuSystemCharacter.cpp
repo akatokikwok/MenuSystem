@@ -63,10 +63,10 @@ AMenuSystemCharacter::AMenuSystemCharacter()
 		// 使用在线子系统获取一个session 
 		OnlineSessionInterface = GRBOnlineSubsystemPtr->GetSessionInterface();
 		// 顺带打印一下在线子系统的名字.
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue,
-				FString::Printf(TEXT("Found OnlineSubsystemPtr's Name is %s"), *GRBOnlineSubsystemPtr->GetSubsystemName().ToString()));
-		}
+		//if (GEngine) {
+		//	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue,
+		//		FString::Printf(TEXT("Found OnlineSubsystemPtr's Name is %s"), *GRBOnlineSubsystemPtr->GetSubsystemName().ToString()));
+		//}
 	}
 }
 

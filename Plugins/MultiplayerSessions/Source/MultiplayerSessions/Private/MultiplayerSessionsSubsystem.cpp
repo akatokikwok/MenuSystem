@@ -20,6 +20,9 @@ UMultiplayerSessionsSubsystem::UMultiplayerSessionsSubsystem()
 	}
 }
 
+
+#pragma region 一些供Menu菜单调用的处理会话操作的主动接口
+
 void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FString MatchType)
 {
 	if (!SessionInterface.IsValid()) {
@@ -43,16 +46,18 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	LastSessionSettings->bAllowJoinViaPresence = true;
 	LastSessionSettings->bShouldAdvertise = true;
 	LastSessionSettings->bUsesPresence = true;
-	// 这一步最关键,一定要开启
-	LastSessionSettings->bUseLobbiesIfAvailable = true;
-
 	/* 这一步设定匹配类型的键值对, 以及公告类型.*/
 	LastSessionSettings->Set(FName("MatchType"), MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	// 这一步最关键,一定要开启
+	LastSessionSettings->bUseLobbiesIfAvailable = true;
+	// 保证唯一ID,让用户构建和自己托管他们自己独有的
+	LastSessionSettings->BuildUniqueId = 1;
+
 
 	/* 各平台若创建会话失败 针对性地,清除委托列表里的"创建会话委托". */
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	if (!SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings)) {
-		
+
 		// 会话接口使用完之后, 清除"创建会话委托"
 		SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegateHandle);
 
@@ -61,8 +66,6 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	}
 }
 
-
-#pragma region 一些供Menu菜单调用的处理会话操作的主动接口
 void UMultiplayerSessionsSubsystem::FindSessions(int32 MaxSearchResults)
 {
 	if (!SessionInterface.IsValid()) {

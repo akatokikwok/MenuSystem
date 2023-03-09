@@ -102,9 +102,9 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 {
 	/* 依据创建会话结果来进行是否 传送人物到lobby地图. */
 	if (bWasSuccessful) {
-		if (GEngine) {
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Session created successfully!")));
-		}
+		//if (GEngine) {
+		//	GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Session created successfully!")));
+		//}
 		UWorld* World = GetWorld();
 		if (World) {
 			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
