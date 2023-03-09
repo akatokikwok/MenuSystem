@@ -6,8 +6,9 @@
 
 
 // 接口, 启用菜单功能, 负责处理绘制和设置输入模式
-void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch)
+void UMenu::MenuSetup(int32 NumberOfPublicConnections, FString TypeOfMatch, FString LobbyPath)
 {
+	PathToLobby = FString::Printf(TEXT("%s?listen"), *LobbyPath);
 	NumPublicConnections = NumberOfPublicConnections;
 	MatchType = TypeOfMatch;
 
@@ -107,7 +108,8 @@ void UMenu::OnCreateSession(bool bWasSuccessful)
 		//}
 		UWorld* World = GetWorld();
 		if (World) {
-			World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+			//World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+			World->ServerTravel(PathToLobby);
 		}
 	}
 	else {

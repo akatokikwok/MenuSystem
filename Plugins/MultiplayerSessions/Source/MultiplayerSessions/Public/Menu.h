@@ -15,7 +15,7 @@ class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 public:
 	// 接口, 启用菜单功能, 负责处理绘制和设置输入模式
 	UFUNCTION(BlueprintCallable)
-		void MenuSetup(int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")));
+		void MenuSetup(int32 NumberOfPublicConnections = 4, FString TypeOfMatch = FString(TEXT("FreeForAll")), FString LobbyPath = FString(TEXT("/Game/ThirdPerson/Maps/Lobby")));
 
 protected:
 	// 覆写UserWidget:::Initialize
@@ -64,4 +64,7 @@ private:
 
 	// 匹配类型键值对
 	FString MatchType{ TEXT("FreeForAll") };
+
+	// 到Lobby地图的路径
+	FString PathToLobby{ TEXT("") };
 };
