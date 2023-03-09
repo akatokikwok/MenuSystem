@@ -83,4 +83,11 @@ private:
 
 	// 会话搜索器; 是1根智能指针
 	TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
+
+	// 仅当真,才允许创建回话.
+	bool bCreateSessionOnDestroy = false;
+	// 公共链接
+	int32 LastNumPublicConnections;
+	// 匹配类型键值对
+	FString LastMatchType;
 };

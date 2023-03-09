@@ -32,7 +32,11 @@ void UMultiplayerSessionsSubsystem::CreateSession(int32 NumPublicConnections, FS
 	// 从会话接口里查找session,并清除掉
 	auto ExistingSession = SessionInterface->GetNamedSession(NAME_GameSession);
 	if (ExistingSession != nullptr) {
-		SessionInterface->DestroySession(NAME_GameSession);
+		bCreateSessionOnDestroy = true;// 已经存在会话指针实例的情况下是不允许再创建回话的, 所以这一步才开启创建许可
+		LastNumPublicConnections = NumPublicConnections;// 公共链接数
+		LastMatchType = MatchType;// 键值对匹配类型
+
+		DestroySession();
 	}
 
 	// 会话接口需要填充委托列表; 把委托:"已创建会话"注册进去
@@ -108,7 +112,20 @@ void UMultiplayerSessionsSubsystem::JoinSession(const FOnlineSessionSearchResult
 
 void UMultiplayerSessionsSubsystem::DestroySession()
 {
+	// 若没有会话接口,则广播销毁失败
+	if (!SessionInterface.IsValid()) {
+		MultiplayerOnDestroySessionComplete.Broadcast(false);
+		return;
+	}
 
+	// 会话接口内委托列表注册 销毁委托
+	DestroySessionCompleteDelegateHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegate);
+
+	// 如果销毁操作失败, 则清除委托并广播销毁失败
+	if (!SessionInterface->DestroySession(NAME_GameSession)) {
+		SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
+		MultiplayerOnDestroySessionComplete.Broadcast(false);
+	}
 }
 
 void UMultiplayerSessionsSubsystem::StartSession()
@@ -154,7 +171,17 @@ void UMultiplayerSessionsSubsystem::OnJoinSessionComplete(FName SessionName, EOn
 
 void UMultiplayerSessionsSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful)
 {
-
+	// 清除委托列表里的 销毁委托
+	if (SessionInterface) {
+		SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
+	}
+	// 仅当开启销毁 且销毁许可证被启用 才允许真正意义上的创建会话, 并关闭销毁许可证
+	if (bWasSuccessful && bCreateSessionOnDestroy) {
+		bCreateSessionOnDestroy = false;
+		CreateSession(LastNumPublicConnections, LastMatchType);
+	}
+	// 广播一下销毁结果
+	MultiplayerOnDestroySessionComplete.Broadcast(bWasSuccessful);
 }
 
 void UMultiplayerSessionsSubsystem::OnStartSessionComplete(FName SessionName, bool bWasSuccessful)
