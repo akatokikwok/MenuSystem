@@ -1,5 +1,4 @@
 .vs/
-MenuSystem.sln
 Binaries/
 Intermediate/
 Saved/
@@ -11,3 +10,4 @@ Build/WinPackage/
 Content/Characters/Mannequin_UE4/
 Content/Characters/Mannequins/
 Content/LevelPrototyping/
+MenuSystem.sln
